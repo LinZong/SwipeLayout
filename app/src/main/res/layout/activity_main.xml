@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout
+<android.support.constraint.ConstraintLayout
         xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:tools="http://schemas.android.com/tools"
         android:id="@+id/relativeRoot"
@@ -8,22 +8,50 @@
         android:layout_height="match_parent"
         tools:context=".MainActivity">
 
-    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-              android:text="一些应该放在背景的内容"/>
+    <LinearLayout android:layout_width="match_parent"
+                  android:layout_height="0dp"
+                  app:layout_constraintBottom_toTopOf="@+id/MySwiperLayout"
+                  app:layout_constraintEnd_toEndOf="parent"
+                  app:layout_constraintStart_toStartOf="parent"
+                  app:layout_constraintHorizontal_bias="0.0"
+                  app:layout_constraintTop_toTopOf="parent">
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="SomeText"/>
+    </LinearLayout>
+
     <com.example.swipeuplayout.View.SwipeUpLayout android:layout_width="match_parent"
                                                   android:background="#EC7575"
                                                   android:visibility="visible"
+                                                  android:layout_marginTop="1200px"
                                                   app:detectArea="120dp"
+                                                  android:id="@+id/MySwiperLayout"
                                                   app:anchorBottom="120dp"
                                                   app:anchorMiddle="0.6"
                                                   app:dimBackground="true"
                                                   app:rootView="@id/relativeRoot"
                                                   android:layout_height="match_parent">
 
-        <TextView android:layout_width="wrap_content"
-                  android:layout_height="wrap_content"
-                  android:text="Some Text To Take Place"
-                  android:textAllCaps="false"/>
+        <LinearLayout android:layout_width="match_parent" android:layout_height="match_parent"
+                      android:orientation="vertical">
+            <TextView android:layout_width="wrap_content" android:textSize="24sp" android:layout_height="wrap_content"
+                      android:text="Some Text 1"/>
+            <TextView android:layout_width="wrap_content" android:textSize="24sp" android:layout_height="wrap_content"
+                      android:text="Some Text 2"/>
+            <TextView android:layout_width="wrap_content" android:textSize="24sp" android:layout_height="wrap_content"
+                      android:text="Some Text 3"/>
+            <TextView android:layout_width="wrap_content" android:textSize="24sp" android:layout_height="wrap_content"
+                      android:text="Some Text 4"/>
+            <TextView android:layout_width="wrap_content" android:textSize="24sp" android:layout_height="wrap_content"
+                      android:text="Some Text 5"/>
+            <TextView android:layout_width="wrap_content" android:textSize="24sp" android:layout_height="wrap_content"
+                      android:text="Some Text 6"/>
+            <TextView android:layout_width="wrap_content" android:textSize="24sp" android:layout_height="wrap_content"
+                      android:text="Some Text 7"/>
+            <TextView android:layout_width="wrap_content" android:textSize="24sp" android:layout_height="wrap_content"
+                      android:text="Some Text 8"/>
+            <TextView android:layout_width="wrap_content" android:textSize="24sp" android:layout_height="wrap_content"
+                      android:text="Some Text 9"/>
+        </LinearLayout>
+
     </com.example.swipeuplayout.View.SwipeUpLayout>
 
-</RelativeLayout>
+</android.support.constraint.ConstraintLayout>

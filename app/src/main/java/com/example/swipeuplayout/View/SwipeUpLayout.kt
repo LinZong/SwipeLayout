@@ -7,14 +7,10 @@ import android.graphics.drawable.ColorDrawable
 import android.util.AttributeSet
 import android.util.Log
 import android.view.MotionEvent
-import android.view.View
-import android.view.ViewConfiguration
 import android.view.ViewGroup
 import android.view.animation.AccelerateInterpolator
-import android.view.animation.LinearInterpolator
 import android.widget.RelativeLayout
 import com.example.swipeuplayout.Model.AnchorType
-import com.example.swipeuplayout.Model.QuinticInterpolator
 import com.example.swipeuplayout.R
 import com.example.swipeuplayout.Utils.Dp2Px
 import com.example.swipeuplayout.Utils.GetScreenResolution
@@ -25,12 +21,12 @@ class SwipeUpLayout : RelativeLayout {
 
     private val TAG = "SwipeUpLayout"
     private var RootViewRef: Int = -1
-    private var CurrentLayoutRootView : View? = null
+    private var CurrentLayoutRootView : ViewGroup? = null
 
     // anchor value
-    private var AnchorBottom: Float = 100.0f
-    private var AnchorMiddle: Float = 0.5f
-    private var DimBackground: Boolean = true
+    var AnchorBottom: Float = 100.0f
+    var AnchorMiddle: Float = 0.5f
+    var DimBackground: Boolean = true
     private var CurrentScreenResolution: ScreenResolution = ScreenResolution(1080,1920)
 
     // touch event tracking variables
@@ -42,14 +38,13 @@ class SwipeUpLayout : RelativeLayout {
     private var BaseMargin : Int = 0
     private var MoveDirection = true
 
-    private var MaxFlingVelocityY : Int = 0
     private var ScrollToAnchorAnimator : ValueAnimator? = null
 
 
     // computed value
 
     private val CurrentMarginTop: Int
-        get() = max((layoutParams as RelativeLayout.LayoutParams).topMargin,0)
+        get() = max((layoutParams as ViewGroup.MarginLayoutParams).topMargin,0)
 
     private val MiddleAnchorPixel : Int
         get() = (BaseMargin * AnchorMiddle).toInt()
@@ -65,6 +60,7 @@ class SwipeUpLayout : RelativeLayout {
         Init()
     }
 
+
     override fun onFinishInflate() {
         super.onFinishInflate()
         ApplyInitMargin()
@@ -77,7 +73,6 @@ class SwipeUpLayout : RelativeLayout {
 
     private fun ApplyInitMargin() {
         post {
-            MaxFlingVelocityY = ViewConfiguration.get(context).scaledMaximumFlingVelocity
             SetMarginTop(BaseMargin)
             CurrentLayoutRootView?.background = ColorDrawable(Color.argb(0, 0, 0, 0))
         }
@@ -182,9 +177,14 @@ class SwipeUpLayout : RelativeLayout {
             CurrentLayoutRootView?.background =
                 ColorDrawable(Color.argb((Limit(DimPercentage, 0f..1f) * 255).toInt(), 0, 0, 0))
         }
-        val lp = layoutParams as RelativeLayout.LayoutParams
-        lp.setMargins(0, marginTop, 0, 0)
-        layoutParams = lp
+
+        if(layoutParams is ViewGroup.MarginLayoutParams) {
+            val lp = layoutParams as ViewGroup.MarginLayoutParams
+            lp.setMargins(0, marginTop, 0, 0)
+            layoutParams = lp
+        }
+        else throw IllegalArgumentException("This layout isn't currently under a view group, it is under a $parent")
+
 
     }
     private fun <T : Comparable<T>> Limit(number: T, range: ClosedRange<T>): T {

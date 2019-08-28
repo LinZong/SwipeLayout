@@ -14,7 +14,7 @@ enum class AnchorType {
 
      companion object {
          fun DetectAnchorType(ScreenBottomPixel:Int, MiddleAnchorPixel:Int, MoveDirection:Boolean, CurrentPositionY:Int) : AnchorType {
-             Log.d("AnchorDetector","$ScreenBottomPixel, $MiddleAnchorPixel, $MoveDirection, $CurrentPositionY")
+
              when (CurrentPositionY) {
                  in 0..MiddleAnchorPixel -> {
                      return if (MoveDirection) ANCHOR_TO_MIDDLE_FROM_UPPER
