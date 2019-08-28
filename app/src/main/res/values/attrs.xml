@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="SwipeUpLayout">
+        <attr name="anchorBottom" format="dimension"/>
+        <attr name="anchorMiddle" format="float"/>
+        <attr name="dimBackground" format="boolean"/>
+        <attr name="detectArea" format="dimension"/>
+    </declare-styleable>
+</resources>
