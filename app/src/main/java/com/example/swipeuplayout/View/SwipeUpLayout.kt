@@ -7,6 +7,7 @@ import android.graphics.drawable.ColorDrawable
 import android.util.AttributeSet
 import android.util.Log
 import android.view.MotionEvent
+import android.view.View
 import android.view.ViewConfiguration
 import android.view.ViewGroup
 import android.view.animation.AccelerateInterpolator
@@ -23,7 +24,8 @@ import kotlin.math.max
 class SwipeUpLayout : RelativeLayout {
 
     private val TAG = "SwipeUpLayout"
-
+    private var RootViewRef: Int = -1
+    private var CurrentLayoutRootView : View? = null
 
     // anchor value
     private var AnchorBottom: Float = 100.0f
@@ -38,7 +40,7 @@ class SwipeUpLayout : RelativeLayout {
     private var BeginMoveMargin: Int = 0
     private var DetectArea : Int = 0
     private var BaseMargin : Int = 0
-
+    private var MoveDirection = true
 
     private var MaxFlingVelocityY : Int = 0
     private var ScrollToAnchorAnimator : ValueAnimator? = null
@@ -55,14 +57,12 @@ class SwipeUpLayout : RelativeLayout {
     constructor(context: Context?) : super(context)
     constructor(context: Context?, attrs: AttributeSet?) : super(context, attrs) {
         ObtainTypedValue(context, attrs)
-        CurrentScreenResolution = context!!.GetScreenResolution()
-        BaseMargin = (CurrentScreenResolution.Height - AnchorBottom).toInt()
+        Init()
     }
 
     constructor(context: Context?, attrs: AttributeSet?, defStyleAttr: Int) : super(context, attrs, defStyleAttr) {
         ObtainTypedValue(context, attrs)
-        CurrentScreenResolution = context!!.GetScreenResolution()
-        BaseMargin = (CurrentScreenResolution.Height - AnchorBottom).toInt()
+        Init()
     }
 
     override fun onFinishInflate() {
@@ -70,28 +70,37 @@ class SwipeUpLayout : RelativeLayout {
         ApplyInitMargin()
     }
 
+    private fun Init() {
+        CurrentScreenResolution = context!!.GetScreenResolution()
+        BaseMargin = (CurrentScreenResolution.Height - AnchorBottom).toInt()
+    }
+
     private fun ApplyInitMargin() {
         post {
-
             MaxFlingVelocityY = ViewConfiguration.get(context).scaledMaximumFlingVelocity
-
-            val lp = layoutParams as RelativeLayout.LayoutParams
-            lp.setMargins(0, (CurrentScreenResolution.Height - AnchorBottom).toInt(), 0, 0)
-            layoutParams = lp
-            (parent as ViewGroup).background = ColorDrawable(Color.argb(0, 0, 0, 0))
+            SetMarginTop(BaseMargin)
+            CurrentLayoutRootView?.background = ColorDrawable(Color.argb(0, 0, 0, 0))
         }
     }
 
     private fun ObtainTypedValue(context: Context?, attrs: AttributeSet?) {
         val tr = context!!.obtainStyledAttributes(attrs, R.styleable.SwipeUpLayout)
+
         DimBackground = tr.getBoolean(R.styleable.SwipeUpLayout_dimBackground, true)
         AnchorBottom = tr.getDimension(R.styleable.SwipeUpLayout_anchorBottom, 100f)
         AnchorMiddle = tr.getFloat(R.styleable.SwipeUpLayout_anchorMiddle, 0.5f)
         DetectArea = tr.getDimension(R.styleable.SwipeUpLayout_detectArea, context.Dp2Px(100)).toInt()
+        RootViewRef = tr.getResourceId(R.styleable.SwipeUpLayout_rootView,-1)
+
         tr.recycle()
 
         // log obtained values
         Log.d(TAG, "Values are: $DimBackground, $AnchorBottom, $AnchorMiddle, $DetectArea")
+    }
+
+    override fun onAttachedToWindow() {
+        super.onAttachedToWindow()
+        CurrentLayoutRootView = rootView?.findViewById(RootViewRef)
     }
 
     override fun onTouchEvent(event: MotionEvent?): Boolean {
@@ -103,19 +112,21 @@ class SwipeUpLayout : RelativeLayout {
                 }
                 MotionEvent.ACTION_MOVE -> {
                     val NewDownY = event.rawY.toInt()
+                    // Update scroll direction
+                    MoveDirection = NewDownY - DownY > 0
+                    // Update  axis Y coord
                     MoveY += NewDownY - DownY
                     DownY = NewDownY
+
                     val MovedMarginTop = BeginMoveMargin + MoveY
                     SetMarginTop(Limit(MovedMarginTop, 0..BaseMargin))
 
                     // Dim parent background if needed
                 }
                 MotionEvent.ACTION_UP -> {
-                    Log.d(TAG,"Total MoveY: $MoveY")
-                    val MoveDirection = MoveY > 0
                     // 计算Y轴的velocity, 准备靠近中央锚点，或者是两边
                     val AnchorTo = AnchorType.DetectAnchorType(
-                        CurrentScreenResolution.Height,
+                                                                CurrentScreenResolution.Height,
                                                                 MiddleAnchorPixel,
                                                                 MoveDirection,
                                                                 CurrentMarginTop)
@@ -132,7 +143,7 @@ class SwipeUpLayout : RelativeLayout {
                         }
 
                         AnchorType.ANCHOR_TO_SCREEN_TOP -> {
-                            val Remain = MiddleAnchorPixel - CurrentMarginTop
+                            val Remain = CurrentMarginTop
                             val Total = MiddleAnchorPixel
                             FlingScrollDuration = CalculateDuration(Remain,Total).toInt()
                             MoveToAnchor(FlingScrollDuration.toLong(),CurrentMarginTop..0)
@@ -168,7 +179,7 @@ class SwipeUpLayout : RelativeLayout {
     private fun SetMarginTop(marginTop: Int) {
         if (DimBackground) {
             val DimPercentage = (1.0f - marginTop.toFloat() / BaseMargin) * 0.8f
-            (parent as ViewGroup).background =
+            CurrentLayoutRootView?.background =
                 ColorDrawable(Color.argb((Limit(DimPercentage, 0f..1f) * 255).toInt(), 0, 0, 0))
         }
         val lp = layoutParams as RelativeLayout.LayoutParams
@@ -184,7 +195,7 @@ class SwipeUpLayout : RelativeLayout {
         }
     }
 
-    private fun CalculateDuration(RemainDistance:Int, TotalDistance:Int) = 150 - 150 * (RemainDistance * 1.0f / TotalDistance)
+    private fun CalculateDuration(RemainDistance:Int, TotalDistance:Int) = 200 * (RemainDistance * 1.0f / TotalDistance)
 
     private fun MoveToAnchor(duration: Long,range: ClosedRange<Int>) {
         if(ScrollToAnchorAnimator == null) {
